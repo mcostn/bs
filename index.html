@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+    <head>
+        <title>!bs - Bang Search</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style.css" rel="stylesheet" type="text/css"/>
+        <script src="index.js" defer></script>
+    </head>
+    <body>
+        <main class="main-container">
+            <h1 class="main-title">!bs</h1>
+            <form id="query-form">
+                <input
+                  type="text"
+                  name="query"
+                  id="query-input"
+                  placeholder="Search something"
+                  minlength=2
+                  autofocus />
+            </form>
+            <div>
+                <button
+                    type="button"
+                    id="settings-button"
+                    command="show-modal"
+                    commandfor="settings-dialog" >
+                    Settings
+                </button>
+                <dialog id="settings-dialog">
+                    <p>Settings dialog</p>
+                </dialog>
+            </div>
+        </main>
+    </body>
+</html>
