@@ -133,6 +133,100 @@ async function search(str) {
     }
 }
 
+// UI
+class UI {
+    queryForm = null;
+    onSearch = null;
+
+    addToPage() {
+        const body = document.body;
+        if (body === null || body === undefined) {
+            throw new Error("could not get body");
+        }
+
+        body.innerHTML = this.html();
+        this.queryForm = getElementByIdOrThrow("query-form");
+        this.queryForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const data = new FormData(this.queryForm);
+            const queryStr = data.get("query")?.trim();
+            if (queryStr && queryStr.length > 0) {
+                this.onSearch && this.onSearch(queryStr);
+            }
+        });
+    }
+
+    html() {
+        return `
+        <main class="min-h-screen flex flex-column justify-center">
+            <div class="flex flex-column align-center">
+                <h1 class="text-xl fg-bold mb-1">BangSearch</h1>
+                <form class="w-full px-0.6 flex justify-center" id="query-form">
+                    <input
+                      type="text"
+                      name="query"
+                      class="input w-full max-w-xl px-1.2 py-0.8"
+                      placeholder="Search something"
+                      minlength="2"
+                      autofocus />
+                </form>
+                <div class="mt-1 space-x">
+                    <button
+                        class="button"
+                        command="show-modal"
+                        commandfor="settings-dialog">
+                        Settings
+                    </button>
+                    <a
+                        class="button"
+                        href="https://github.com/mcostn/bs"
+                        target="blank">
+                        Source Code
+                    </a>
+                </div>
+            </div>
+            <div>
+                <dialog class="popup" id="settings-dialog">
+                    <h2 class="fg-bold mb-1 text-lg">Settings</h2>
+
+                    <div class="space-y">
+                        <div class="setting">
+                            <label for="default-bangs" class="fg-muted">Default Bangs</label>
+                            <input type="text" class="input px-0.6 py-0.2" id="default-bangs" />
+                        </div>
+                        <div class="setting">
+                            <label for="theme" class="fg-muted">Theme</label>
+                            <select class="input px-0.6 py-0.2" id="theme">
+                                <option>Auto</option>
+                                <option>Light</option>
+                                <option>Dark</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-1 space-x">
+                        <button
+                                type="button"
+                                class="button"
+                                command="close"
+                                commandfor="settings-dialog">
+                            Cancel
+                        </button>
+                        <button
+                                type="button"
+                                class="button"
+                                command="close"
+                                commandfor="settings-dialog">
+                            Save
+                        </button>
+                    </div>
+                </dialog>
+            </div>
+        </main>`;
+    }
+}
+
 // Entry Point
 async function main() {
     const url = new URL(window.location.href);
@@ -142,17 +236,9 @@ async function main() {
         return;
     }
 
-    const queryForm = getElementByIdOrThrow("query-form");
-    queryForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        const data = new FormData(queryForm);
-        const queryStr = data.get("query")?.trim();
-        if (queryStr) {
-            const params = new URLSearchParams({ query: queryStr });
-            window.location.replace(`?${params.toString()}`);
-        }
-    });
+    const ui = new UI();
+    ui.addToPage();
+    ui.onSearch = search;
 }
 
 main().catch(e => console.error("Unexpected error\n", e));
