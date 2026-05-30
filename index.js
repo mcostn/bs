@@ -65,7 +65,6 @@ class QueryParser {
         out.text = out.text.trim();
 
         if (out.bangs.length <= 0) {
-            console.log(DEFAULT_SETTINGS.defaultBang);
             out.bangs.push(DEFAULT_SETTINGS.defaultBang);
         }
 
@@ -121,16 +120,13 @@ class QueryParser {
 async function search(str) {
     const parser = new QueryParser(str);
     const query = await parser.parse();
-
     const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", query.text));
-    let openFn = (str) => window.location.replace(str);
-    if (urls.length > 1) {
-        openFn = (str) => window.open(str, "_blank");
-    }
 
-    for (const url of urls) {
-        openFn(url);
+    const [firstUrl] = urls;
+    for (let idx = 1; idx < urls.length; idx++) {
+        window.open(urls[idx], "_blank");
     }
+    window.location.assign(firstUrl);
 }
 
 // UI
@@ -181,7 +177,7 @@ class UI {
                     <a
                         class="button"
                         href="https://github.com/mcostn/bs"
-                        target="blank">
+                        target="_blank">
                         Source Code
                     </a>
                 </div>
