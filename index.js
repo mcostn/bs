@@ -55,7 +55,8 @@ class QueryParser {
             let ch = this.top();
             if (ch == '!') {
                 const bang = this.getBang();
-                out.bangs.push(bang);
+                if (bang !== null) out.bangs.push(bang);
+                else out.text += '!';
                 continue;
             }
 
@@ -101,6 +102,9 @@ class QueryParser {
             this.next();
         }
 
+        if (out === undefined || out.length === 0) {
+            return null;
+        }
         return out.toLowerCase();
     }
 
