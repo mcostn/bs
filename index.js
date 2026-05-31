@@ -1,9 +1,32 @@
 "use strict"
 
-// Constants
-const DEFAULT_SETTINGS = {
+// Settings
+const DEFAULT_SETTINGS = Object.freeze({
     defaultBang: 'g',
-};
+    theme: "auto",
+});
+
+function getSettings() {
+    let out = localStorage.getItem("settings");
+    if (!out) {
+        out = DEFAULT_SETTINGS;
+        localStorage.setItem("settings", JSON.stringify(out));
+    } else {
+        out = JSON.parse(out);
+    }
+    return out;
+}
+
+function updateSettings(newSettings) {
+    const settings = getSettings();
+    for (const [key, value] of Object.entries(newSettings)) {
+        if (key in settings) {
+            settings[key] = value;
+        }
+    }
+
+    localStorage.setItem("settings", JSON.stringify(settings));
+}
 
 // Util
 function getElementByIdOrThrow(id) {
@@ -126,6 +149,8 @@ async function search(str) {
     const query = await parser.parse();
     const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", query.text));
 
+    const settings = getSettings();
+
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
         window.open(urls[idx], "_blank");
@@ -135,7 +160,6 @@ async function search(str) {
 
 // UI
 class UI {
-    queryForm = null;
     onSearch = null;
 
     addToPage() {
@@ -144,20 +168,39 @@ class UI {
             throw new Error("could not get body");
         }
 
-        body.innerHTML = this.html();
-        this.queryForm = getElementByIdOrThrow("query-form");
-        this.queryForm.addEventListener("submit", (e) => {
+        // Render
+        const settings = getSettings();
+        body.innerHTML = this.html(settings);
+        const themeSelect = getElementByIdOrThrow("theme");
+        themeSelect.value = settings.theme;
+
+        // Events
+        const queryForm = getElementByIdOrThrow("query-form");
+        queryForm.addEventListener("submit", e => {
             e.preventDefault();
 
-            const data = new FormData(this.queryForm);
+            const data = new FormData(queryForm);
             const queryStr = data.get("query")?.trim();
             if (queryStr && queryStr.length > 0) {
                 this.onSearch && this.onSearch(queryStr);
             }
         });
+
+        const settingsDialog = getElementByIdOrThrow("settings-dialog");
+        const settingsForm = getElementByIdOrThrow("settings-form");
+        settingsForm.addEventListener("submit", e => {
+            e.preventDefault();
+
+            const data = new FormData(settingsForm);
+            const defaultBang = data.get("default-bang");
+            const theme = data.get("theme");
+
+            updateSettings({ defaultBang, theme });
+            settingsDialog.close();
+        })
     }
 
-    html() {
+    html(settings = DEFAULT_SETTINGS) {
         return `
         <main class="min-h-screen flex flex-column justify-center">
             <div class="flex flex-column align-center">
@@ -190,37 +233,49 @@ class UI {
                 <dialog class="popup" id="settings-dialog">
                     <h2 class="fg-bold mb-1 text-lg">Settings</h2>
 
-                    <div class="space-y">
-                        <div class="setting">
-                            <label for="default-bangs" class="fg-muted">Default Bangs</label>
-                            <input type="text" class="input px-0.6 py-0.2" id="default-bangs" />
+                    <form id="settings-form">
+                        <div class="space-y">
+                            <div class="setting">
+                                <label
+                                    for="default-bang"
+                                    class="fg-muted">
+                                    Default Bangs
+                                </label>
+                                <input
+                                    value="${settings.defaultBang}"
+                                    type="text"
+                                    class="input px-0.6 py-0.2"
+                                    id="default-bang"
+                                    name="default-bang" />
+                            </div>
+                            <div class="setting">
+                                <label for="theme" class="fg-muted">Theme</label>
+                                <select
+                                    class="input px-0.6 py-0.2"
+                                    id="theme"
+                                    name="theme">
+                                    <option value="auto">Auto</option>
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="setting">
-                            <label for="theme" class="fg-muted">Theme</label>
-                            <select class="input px-0.6 py-0.2" id="theme">
-                                <option>Auto</option>
-                                <option>Light</option>
-                                <option>Dark</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="mt-1 space-x">
-                        <button
-                                type="button"
-                                class="button"
-                                command="close"
-                                commandfor="settings-dialog">
-                            Cancel
-                        </button>
-                        <button
-                                type="button"
-                                class="button"
-                                command="close"
-                                commandfor="settings-dialog">
-                            Save
-                        </button>
-                    </div>
+                        <div class="mt-1 space-x">
+                            <button
+                                    type="button"
+                                    class="button"
+                                    command="close"
+                                    commandfor="settings-dialog">
+                                Cancel
+                            </button>
+                            <button
+                                    type="submit"
+                                    class="button">
+                                Save
+                            </button>
+                        </div>
+                    </form>
                 </dialog>
             </div>
         </main>`;
