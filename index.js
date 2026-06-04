@@ -39,6 +39,16 @@ function updateSettings(newSettings) {
     );
 }
 
+function getLastBang() {
+    const out = localStorage.getItem("last-bang");
+    if (!out) null;
+    return out;
+}
+
+function setLastBang(bang) {
+    localStorage.setItem("last-bang", bang);
+}
+
 // Util
 function getElementByIdOrThrow(id) {
     const out = document.getElementById(id);
@@ -150,7 +160,16 @@ class QueryParser {
 async function resolveBangs(query) {
     const bangMap = await getBangMap();
     query.bangs = query.bangs
-        .map(b => bangMap.get(b))
+        .map(b => {
+            if (b === '!') {
+                const lastBang = getLastBang();
+                if (!lastBang) return null;
+
+                return bangMap.get(lastBang);
+            }
+
+            return bangMap.get(b);
+        })
         .filter(Boolean);
 
     if (query.bangs.length === 0) {
@@ -164,6 +183,9 @@ async function search(str) {
     const query = parser.parse();
     await resolveBangs(query);
 
+    const lastBang = query.bangs[query.bangs.length - 1].t;
+    setLastBang(lastBang);
+
     const urls = query.bangs.map(bang => {
         if (query.text) {
             return bang.u.replace("{{{s}}}", encodeURIComponent(query.text));
@@ -171,6 +193,7 @@ async function search(str) {
 
         return new URL(bang.u).origin;
     });
+
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
         window.open(urls[idx], "_blank");
