@@ -226,7 +226,7 @@ class UI {
             <div class="flex flex-column align-center">
                 <div class="mb-1">
                     <img
-                        src="/img/logo.svg"
+                        src="img/logo.svg"
                         alt="logo"
                         class="max-w-lg">
                     <h1 class="text-xl text-center fg-bold mb-1">BangSearch</h1>
