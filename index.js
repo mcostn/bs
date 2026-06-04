@@ -7,25 +7,36 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 
 function getSettings() {
-    let out = localStorage.getItem("settings");
-    if (!out) {
-        out = DEFAULT_SETTINGS;
-        localStorage.setItem("settings", JSON.stringify(out));
-    } else {
-        out = JSON.parse(out);
+    try {
+        const raw = localStorage.getItem("settings");
+
+        if (!raw) {
+            localStorage.setItem(
+                "settings",
+                JSON.stringify(DEFAULT_SETTINGS),
+            );
+            return { ...DEFAULT_SETTINGS };
+        }
+
+        return {
+            ...DEFAULT_SETTINGS,
+            ...JSON.parse(raw),
+        };
+    } catch (err) {
+        return { ...DEFAULT_SETTINGS };
     }
-    return out;
 }
 
 function updateSettings(newSettings) {
-    const settings = getSettings();
-    for (const [key, value] of Object.entries(newSettings)) {
-        if (key in settings) {
-            settings[key] = value;
-        }
-    }
+    const settings = {
+        ...getSettings(),
+        ...newSettings,
+    };
 
-    localStorage.setItem("settings", JSON.stringify(settings));
+    localStorage.setItem(
+        "settings",
+        JSON.stringify(settings)
+    );
 }
 
 // Util
