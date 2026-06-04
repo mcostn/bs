@@ -239,8 +239,21 @@ class UI {
             const theme = data.get("theme");
 
             updateSettings({ defaultBang, theme });
+            this.applyTheme(theme);
             settingsDialog.close();
         })
+
+        this.applyTheme(settings.theme);
+    }
+
+    applyTheme(theme) {
+        const root = document.documentElement;
+        if (theme === "auto") {
+            const media = window.matchMedia("(prefers-color-scheme: dark)");
+            root.dataset.theme = media.matches ? "dark" : "light";
+        } else {
+            root.dataset.theme = theme;
+        }
     }
 
     html(settings = DEFAULT_SETTINGS) {
