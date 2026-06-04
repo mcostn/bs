@@ -112,8 +112,9 @@ body {
 .fg-bold  { font-weight: 700; };
 .fg-muted { color: var(--text-muted); }
 
-.text-xl { font-size: 2.0rem; }
-.text-lg { font-size: 1.4em; }
+.text-xl     { font-size: 2.0rem; }
+.text-lg     { font-size: 1.4em; }
+.text-center { text-align: center; }
 
 .mt-1 { margin-top: 1rem; }
 .mb-1 { margin-bottom: 1rem; }
@@ -127,6 +128,7 @@ body {
 .space-y > * { margin-bottom: 0.8em; }
 
 .w-full       { width: 100%; }
+.max-w-lg     { width: 18rem; }
 .max-w-xl     { max-width: 34rem; }
 .min-h-screen { min-height: 100vh; }
 

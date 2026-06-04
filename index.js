@@ -203,7 +203,13 @@ class UI {
         return `
         <main class="min-h-screen flex flex-column justify-center">
             <div class="flex flex-column align-center">
-                <h1 class="text-xl fg-bold mb-1">BangSearch</h1>
+                <div class="mb-1">
+                    <img
+                        src="/img/logo.svg"
+                        alt="logo"
+                        class="max-w-lg">
+                    <h1 class="text-xl text-center fg-bold mb-1">BangSearch</h1>
+                </div>
                 <form class="w-full px-0.6 flex justify-center" id="query-form">
                     <input
                       type="text"

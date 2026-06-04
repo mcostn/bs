@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 790 300">
+  <g fill="#7aa2f7">
+    <!-- ! -->
+    <rect x="20" y="20" width="60" height="180"/>
+    <rect x="20" y="230" width="60" height="50"/>
+
+    <!-- B -->
+    <path fill-rule="evenodd" d=" M120 20 H350 L390 60 V120 L365 145 L390 170 V240 L350 280 H120 Z M180 80 H330 V130 H180 Z M180 180 H330 V230 H180 Z" />
+
+    <!-- S -->
+    <path d=" M450 20 H760 V80 H510 V130 H720 L760 170 V280 H450 V220 H700 V180 H490 L450 140 V60 Z" />
+  </g>
+</svg>
