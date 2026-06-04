@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 // Settings
 const DEFAULT_SETTINGS = Object.freeze({
@@ -71,12 +71,12 @@ class QueryParser {
         this.cursor = 0;
     }
 
-    async parse() {
+    parse() {
         const out = { text: "", bangs: [] };
 
         while (!this.isEOF()) {
             let ch = this.top();
-            if (ch == '!') {
+            if (ch === '!') {
                 const bang = this.getBang();
                 if (bang !== null) out.bangs.push(bang);
                 else out.text += '!';
@@ -88,31 +88,14 @@ class QueryParser {
         }
         out.text = out.text.trim();
 
-        if (out.bangs.length <= 0) {
-            out.bangs.push(DEFAULT_SETTINGS.defaultBang);
-        }
-
-        const allBangs = await getAllBangs();
-        out.bangs = out.bangs.map(b => {
-            for (const bang of allBangs) {
-                if (bang.t === b) {
-                    return bang;
-                }
-            }
-
-            return null;
-        });
-
-        out.bangs = out.bangs.filter(b => b !== null);
-
         return out;
     }
 
     getBang() {
-        if (this.top() != '!') return null;
+        if (this.top() !== '!') return null;
 
         this.next();
-        if (this.top() == '!') {
+        if (this.top() === '!') {
             this.next();
             return "!";
         }
@@ -144,11 +127,27 @@ class QueryParser {
     }
 }
 
+async function resolveBangs(query) {
+    const allBangs = await getAllBangs();
+    query.bangs = query.bangs.map(b => {
+        for (const bang of allBangs) {
+            if (bang.t === b) {
+                return bang;
+            }
+        }
+
+        return null;
+    });
+
+    query.bangs = query.bangs.filter(b => b !== null);
+}
+
 async function search(str) {
     const parser = new QueryParser(str);
-    const query = await parser.parse();
-    const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", query.text));
+    const query = parser.parse();
+    await resolveBangs(query);
 
+    const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", query.text));
     const settings = getSettings();
 
     const [firstUrl] = urls;
