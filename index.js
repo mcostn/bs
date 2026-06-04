@@ -128,7 +128,7 @@ class QueryParser {
             this.next();
         }
 
-        if (out === undefined || out.length === 0) {
+        if (out.length === 0) {
             return null;
         }
         return out.toLowerCase();
@@ -164,7 +164,7 @@ async function search(str) {
     const query = parser.parse();
     await resolveBangs(query);
 
-    const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", query.text));
+    const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", encodeURIComponent(query.text)));
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
         window.open(urls[idx], "_blank");
