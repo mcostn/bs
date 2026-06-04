@@ -62,6 +62,15 @@ async function getAllBangs() {
     return _allBangsPromise;
 }
 
+let _bangsMapPromise = null;
+async function getBangMap() {
+    if (!_bangsMapPromise) {
+        _bangsMapPromise = getAllBangs().then(bangs => new Map(bangs.map(b => [b.t, b])));
+    }
+
+    return _bangsMapPromise;
+}
+
 class QueryParser {
     buff;
     cursor;
@@ -128,18 +137,15 @@ class QueryParser {
 }
 
 async function resolveBangs(query) {
-    const allBangs = await getAllBangs();
-    query.bangs = query.bangs.map(b => {
-        for (const bang of allBangs) {
-            if (bang.t === b) {
-                return bang;
-            }
-        }
+    const bangMap = await getBangMap();
+    query.bangs = query.bangs
+        .map(b => bangMap.get(b))
+        .filter(Boolean);
 
-        return null;
-    });
-
-    query.bangs = query.bangs.filter(b => b !== null);
+    const settings = getSettings();
+    if (query.bangs.length === 0) {
+        query.bangs.push(bangMap.get(settings.defaultBang));
+    }
 }
 
 async function search(str) {
@@ -148,8 +154,6 @@ async function search(str) {
     await resolveBangs(query);
 
     const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", query.text));
-    const settings = getSettings();
-
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
         window.open(urls[idx], "_blank");
