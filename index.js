@@ -153,8 +153,8 @@ async function resolveBangs(query) {
         .map(b => bangMap.get(b))
         .filter(Boolean);
 
-    const settings = getSettings();
     if (query.bangs.length === 0) {
+        const settings = getSettings();
         query.bangs.push(bangMap.get(settings.defaultBang));
     }
 }
@@ -164,7 +164,13 @@ async function search(str) {
     const query = parser.parse();
     await resolveBangs(query);
 
-    const urls = query.bangs.map(bang => bang.u.replace("{{{s}}}", encodeURIComponent(query.text)));
+    const urls = query.bangs.map(bang => {
+        if (query.text) {
+            return bang.u.replace("{{{s}}}", encodeURIComponent(query.text));
+        }
+
+        return new URL(bang.u).origin;
+    });
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
         window.open(urls[idx], "_blank");
