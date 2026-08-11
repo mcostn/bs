@@ -1,26 +1,5 @@
 "use strict";
 
-// Settings
-const DEFAULT_SETTINGS = Object.freeze({
-    defaultBang: 'g',
-    theme: "auto",
-});
-
-function getSettings() {
-    const savedSettings = getSaved("settings", DEFAULT_SETTINGS);
-    return {
-        ...DEFAULT_SETTINGS,
-        ...savedSettings,
-    };
-}
-
-function updateSettings(newSettings) {
-    setSaved("settings", {
-        ...getSettings(),
-        ...newSettings,
-    });
-}
-
 // Util
 function getElementByIdOrThrow(id) {
     const out = document.getElementById(id);
@@ -31,157 +10,28 @@ function getElementByIdOrThrow(id) {
     return out;
 }
 
-function isWhitespace(ch) {
-    return ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r';
-}
-
-function getSaved(key, defaultVal = null) {
-    const raw = localStorage.getItem(key);
-    if (raw === null) {
-        return defaultVal;
-    }
+async function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
 
     try {
-        return JSON.parse(raw);
-    } catch {
-        return raw;
+        await navigator.serviceWorker.register("./sw.js");
+    } catch (err) {
+        console.error("Service worker registration failed", err);
     }
-}
-
-function setSaved(key, val) {
-    localStorage.setItem(key, JSON.stringify(val));
 }
 
 // Query
-let _allBangsPromise = null;
-async function getAllBangs() {
-    if (!_allBangsPromise) {
-        _allBangsPromise = fetch("./bangs/ddg.json")
-            .then(r => {
-                if (!r.ok) {
-                    throw new Error(`Failed to fetch bangs: ${r.status}`);
-                }
-                return r.json();
-            })
-            .catch(err => {
-                _allBangsPromise = null;
-                throw err;
-            })
-    }
-
-    return _allBangsPromise;
-}
-
-let _bangsMapPromise = null;
-async function getBangMap() {
-    if (!_bangsMapPromise) {
-        _bangsMapPromise = getAllBangs().then(bangs => new Map(bangs.map(b => [b.t, b])));
-    }
-
-    return _bangsMapPromise;
-}
-
-class QueryParser {
-    buff;
-    cursor;
-
-    constructor(str) {
-        this.buff = str;
-        this.cursor = 0;
-    }
-
-    parse() {
-        const out = { text: "", bangs: [] };
-
-        while (!this.isEOF()) {
-            let ch = this.top();
-            if (ch === '!') {
-                const bang = this.getBang();
-                if (bang !== null) out.bangs.push(bang);
-                else out.text += '!';
-                continue;
-            }
-
-            out.text += ch;
-            this.next();
-        }
-        out.text = out.text.trim();
-
-        return out;
-    }
-
-    getBang() {
-        if (this.top() !== '!') return null;
-
-        this.next();
-        if (this.top() === '!') {
-            this.next();
-            return "!";
-        }
-
-        let out = "";
-        while (!this.isEOF()) {
-            const ch = this.top();
-            if (isWhitespace(ch) || ch === '!') break;
-            out += ch;
-            this.next();
-        }
-
-        if (out.length === 0) {
-            return null;
-        }
-        return out.toLowerCase();
-    }
-
-    isEOF() {
-        return this.cursor >= this.buff.length;
-    }
-
-    top() {
-        return this.buff[this.cursor];
-    }
-
-    next() {
-        return this.buff[this.cursor++];
-    }
-}
-
-async function resolveBangs(query) {
-    const bangMap = await getBangMap();
-    query.bangs = query.bangs
-        .map(b => {
-            if (b === '!') {
-                const lastBang = getSaved("last-bang");
-                if (!lastBang) return null;
-
-                return bangMap.get(lastBang);
-            }
-
-            return bangMap.get(b);
-        })
-        .filter(Boolean);
-
-    if (query.bangs.length === 0) {
-        const settings = getSettings();
-        query.bangs.push(bangMap.get(settings.defaultBang));
-    }
-}
-
 async function search(str) {
     const parser = new QueryParser(str);
     const query = parser.parse();
-    await resolveBangs(query);
+
+    const [settings, bangMap] = await Promise.all([getSettings(), getBangMap()]);
+    await resolveBangs(query, bangMap, settings);
 
     const lastBang = query.bangs[query.bangs.length - 1].t;
-    setSaved("last-bang", lastBang);
+    await setSaved("last-bang", lastBang);
 
-    const urls = query.bangs.map(bang => {
-        if (query.text) {
-            return bang.u.replace("{{{s}}}", encodeURIComponent(query.text));
-        }
-
-        return new URL(bang.u).origin;
-    });
+    const urls = buildRedirectUrls(query);
 
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
@@ -194,14 +44,14 @@ async function search(str) {
 class UI {
     onSearch = null;
 
-    addToPage() {
+    async addToPage() {
         const body = document.body;
         if (body === null || body === undefined) {
             throw new Error("could not get body");
         }
 
         // Render
-        const settings = getSettings();
+        const settings = await getSettings();
         body.innerHTML = this.html(settings);
         const themeSelect = getElementByIdOrThrow("theme");
         themeSelect.value = settings.theme;
@@ -220,14 +70,14 @@ class UI {
 
         const settingsDialog = getElementByIdOrThrow("settings-dialog");
         const settingsForm = getElementByIdOrThrow("settings-form");
-        settingsForm.addEventListener("submit", e => {
+        settingsForm.addEventListener("submit", async e => {
             e.preventDefault();
 
             const data = new FormData(settingsForm);
             const defaultBang = data.get("default-bang");
             const theme = data.get("theme");
 
-            updateSettings({ defaultBang, theme });
+            await updateSettings({ defaultBang, theme });
             this.applyTheme(theme);
             settingsDialog.close();
         })
@@ -338,15 +188,17 @@ class UI {
 
 // Entry Point
 async function main() {
+    registerServiceWorker();
+
     const url = new URL(window.location.href);
     const queryStr = url.searchParams.get("query")?.trim();
     if (queryStr) {
-        search(queryStr);
+        await search(queryStr);
         return;
     }
 
     const ui = new UI();
-    ui.addToPage();
+    await ui.addToPage();
     ui.onSearch = search;
 }
 
