@@ -22,18 +22,7 @@ async function registerServiceWorker() {
 
 // Query
 async function search(str) {
-    const parser = new QueryParser(str);
-    const query = parser.parse();
-
-    const [settings, bangMap] = await Promise.all([getSettings(), getBangMap()]);
-    await resolveBangs(query, bangMap, settings);
-
-    if (query.bangs.length > 0) {
-        const lastBang = query.bangs[query.bangs.length - 1].t;
-        await setSaved("last-bang", lastBang);
-    }
-
-    const urls = buildRedirectUrls(query, settings);
+    const urls = await getUrlsFromSearch(str);
 
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {

@@ -60,27 +60,9 @@ self.addEventListener("fetch", event => {
 
 async function handleSearchNavigation(queryStr, request) {
     try {
-        const parser = new QueryParser(queryStr);
-        const query = parser.parse();
-
-        const [settings, bangMap] = await Promise.all([
-            getSettings(),
-            getBangMapFast(),
-        ]);
-        await resolveBangs(query, bangMap, settings);
-
-        if (query.bangs.length === 0) {
-            return fetch(request);
-        }
-
-        if (query.bangs.length > 1) {
-            return fetch(request);
-        }
-
-        await setSaved("last-bang", query.bangs[0].t);
-
-        const [redirectUrl] = buildRedirectUrls(query, settings);
-        return Response.redirect(redirectUrl, 302);
+        const urls = await getUrlsFromSearch(queryStr);
+        if (urls.length === 1) return Response.redirect(urls[0], 302);
+        return fetch(request);
     } catch (err) {
         console.error("SW search redirect failed, falling back to page", err);
         return fetch(request);

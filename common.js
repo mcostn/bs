@@ -281,3 +281,21 @@ function getLuckyUrl(engineId, text) {
     const engine = LUCKY_ENGINES[engineId] ?? LUCKY_ENGINES[DEFAULT_SETTINGS.luckyEngine];
     return engine.url(text);
 }
+
+async function getUrlsFromSearch(queryStr) {
+    const parser = new QueryParser(queryStr);
+    const query = parser.parse();
+
+    const [settings, bangMap] = await Promise.all([
+        getSettings(),
+        getBangMap()
+    ]);
+    await resolveBangs(query, bangMap, settings);
+
+    if (query.bangs.length > 0) {
+        const lastBang = query.bangs[query.bangs.length - 1].t;
+        await setSaved("last-bang", lastBang);
+    }
+
+    return buildRedirectUrls(query, settings);
+}
