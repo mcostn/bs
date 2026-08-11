@@ -79,7 +79,7 @@ async function handleSearchNavigation(queryStr, request) {
 
         await setSaved("last-bang", query.bangs[0].t);
 
-        const [redirectUrl] = buildRedirectUrls(query);
+        const [redirectUrl] = buildRedirectUrls(query, settings);
         return Response.redirect(redirectUrl, 302);
     } catch (err) {
         console.error("SW search redirect failed, falling back to page", err);

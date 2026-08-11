@@ -62,6 +62,7 @@ function isWhitespace(ch) {
 const DEFAULT_SETTINGS = Object.freeze({
     defaultBang: 'g',
     theme: 'auto',
+    luckyEngine: 'google',
 });
 
 async function getSettings() {
@@ -85,10 +86,16 @@ class QueryParser {
     }
 
     parse() {
-        const out = { text: '', bangs: [] };
+        const out = { text: '', bangs: [], lucky: false };
+
+        let peek = this.cursor;
+        while (peek < this.buff.length && isWhitespace(this.buff[peek])) peek++;
+        if (this.buff[peek] === '\\') {
+            out.lucky = true;
+            this.cursor = peek + 1;
+        }
 
         let atWordStart = true;
-
         while (!this.isEOF()) {
             let ch = this.top();
 
@@ -100,8 +107,7 @@ class QueryParser {
                     continue;
                 }
 
-                out.text += '!';
-                this.next();
+                out.lucky = true;
                 atWordStart = false;
                 continue;
             }
@@ -235,7 +241,7 @@ async function resolveBangs(query, bangMap, settings) {
         }
     }
 
-    if (resolved.length === 0) {
+    if (!query.lucky && resolved.length === 0) {
         const def = bangMap.get(settings.defaultBang);
         if (def) resolved.push(def);
     }
@@ -244,12 +250,34 @@ async function resolveBangs(query, bangMap, settings) {
     return query;
 }
 
-function buildRedirectUrls(query) {
-    return query.bangs.map(bang => {
-        if (query.text) {
-            return bang.u.replace('{{{s}}}', encodeURIComponent(query.text));
-        }
+function buildRedirectUrls(query, settings) {
+    const out = [];
 
+    if (query.lucky && query.text) {
+        out.push(getLuckyUrl(settings.luckyEngine, query.text));
+    }
+
+    out.push(...query.bangs.map(bang => {
+        if (query.text)
+            return bang.u.replace('{{{s}}}', encodeURIComponent(query.text));
         return new URL(bang.u).origin;
-    });
+    }));
+
+    return out;
+}
+
+const LUCKY_ENGINES = Object.freeze({
+    google: Object.freeze({
+        label: 'Google',
+        url: text => `https://www.google.com/search?q=${encodeURIComponent(text)}&btnI=1`,
+    }),
+    duckduckgo: Object.freeze({
+        label: 'DuckDuckGo',
+        url: text => `https://duckduckgo.com/?q=${encodeURIComponent('\\' + text)}`,
+    }),
+});
+
+function getLuckyUrl(engineId, text) {
+    const engine = LUCKY_ENGINES[engineId] ?? LUCKY_ENGINES[DEFAULT_SETTINGS.luckyEngine];
+    return engine.url(text);
 }

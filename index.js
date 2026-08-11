@@ -28,10 +28,12 @@ async function search(str) {
     const [settings, bangMap] = await Promise.all([getSettings(), getBangMap()]);
     await resolveBangs(query, bangMap, settings);
 
-    const lastBang = query.bangs[query.bangs.length - 1].t;
-    await setSaved("last-bang", lastBang);
+    if (query.bangs.length > 0) {
+        const lastBang = query.bangs[query.bangs.length - 1].t;
+        await setSaved("last-bang", lastBang);
+    }
 
-    const urls = buildRedirectUrls(query);
+    const urls = buildRedirectUrls(query, settings);
 
     const [firstUrl] = urls;
     for (let idx = 1; idx < urls.length; idx++) {
