@@ -87,13 +87,32 @@ class QueryParser {
     parse() {
         const out = { text: '', bangs: [] };
 
+        let atWordStart = true;
+
         while (!this.isEOF()) {
             let ch = this.top();
+
             if (ch === '!') {
-                const bang = this.getBang();
-                if (bang !== null) out.bangs.push(bang);
-                else out.text += '!';
+                const bang = this.getPrefixBang();
+                if (bang !== null) {
+                    out.bangs.push(bang);
+                    atWordStart = true;
+                    continue;
+                }
+
+                out.text += '!';
+                this.next();
+                atWordStart = false;
                 continue;
+            }
+
+            if (atWordStart) {
+                const bang = this.getSuffixBang();
+                if (bang !== null) {
+                    out.bangs.push(bang);
+                    atWordStart = true;
+                    continue;
+                }
             }
 
             out.text += ch;
@@ -104,7 +123,7 @@ class QueryParser {
         return out;
     }
 
-    getBang() {
+    getPrefixBang() {
         if (this.top() !== '!') return null;
 
         this.next();
@@ -125,6 +144,38 @@ class QueryParser {
             return null;
         }
         return out.toLowerCase();
+    }
+
+    getSuffixBang() {
+        const start = this.cursor;
+        let name = '';
+
+        while (!this.isEOF()) {
+            const ch = this.top();
+
+            if (ch === '!') {
+                if (name.length === 0) {
+                    this.cursor = start;
+                    return null;
+                }
+
+                this.next();
+                if (!this.isEOF() && !isWhitespace(this.top())) {
+                    this.cursor = start;
+                    return null;
+                }
+
+                return name.toLowerCase();
+            }
+
+            if (isWhitespace(ch)) break;
+
+            name += ch;
+            this.next();
+        }
+
+        this.cursor = start;
+        return null;
     }
 
     isEOF() {
