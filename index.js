@@ -7,46 +7,18 @@ const DEFAULT_SETTINGS = Object.freeze({
 });
 
 function getSettings() {
-    try {
-        const raw = localStorage.getItem("settings");
-
-        if (!raw) {
-            localStorage.setItem(
-                "settings",
-                JSON.stringify(DEFAULT_SETTINGS),
-            );
-            return { ...DEFAULT_SETTINGS };
-        }
-
-        return {
-            ...DEFAULT_SETTINGS,
-            ...JSON.parse(raw),
-        };
-    } catch (err) {
-        return { ...DEFAULT_SETTINGS };
-    }
+    const savedSettings = getSaved("settings", DEFAULT_SETTINGS);
+    return {
+        ...DEFAULT_SETTINGS,
+        ...savedSettings,
+    };
 }
 
 function updateSettings(newSettings) {
-    const settings = {
+    setSaved("settings", {
         ...getSettings(),
         ...newSettings,
-    };
-
-    localStorage.setItem(
-        "settings",
-        JSON.stringify(settings)
-    );
-}
-
-function getLastBang() {
-    const out = localStorage.getItem("last-bang");
-    if (!out) null;
-    return out;
-}
-
-function setLastBang(bang) {
-    localStorage.setItem("last-bang", bang);
+    });
 }
 
 // Util
@@ -61,6 +33,23 @@ function getElementByIdOrThrow(id) {
 
 function isWhitespace(ch) {
     return ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r';
+}
+
+function getSaved(key, defaultVal = null) {
+    const raw = localStorage.getItem(key);
+    if (raw === null) {
+        return defaultVal;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return raw;
+    }
+}
+
+function setSaved(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
 }
 
 // Query
@@ -162,7 +151,7 @@ async function resolveBangs(query) {
     query.bangs = query.bangs
         .map(b => {
             if (b === '!') {
-                const lastBang = getLastBang();
+                const lastBang = getSaved("last-bang");
                 if (!lastBang) return null;
 
                 return bangMap.get(lastBang);
@@ -184,7 +173,7 @@ async function search(str) {
     await resolveBangs(query);
 
     const lastBang = query.bangs[query.bangs.length - 1].t;
-    setLastBang(lastBang);
+    setSaved("last-bang", lastBang);
 
     const urls = query.bangs.map(bang => {
         if (query.text) {
@@ -301,14 +290,17 @@ class UI {
                                 <label
                                     for="default-bang"
                                     class="fg-muted">
-                                    Default Bangs
+                                    Default Bang
                                 </label>
-                                <input
-                                    value="${settings.defaultBang}"
-                                    type="text"
-                                    class="input px-0.6 py-0.2"
-                                    id="default-bang"
-                                    name="default-bang" />
+                                <div>
+                                    <span>!</span>
+                                    <input
+                                        value="${settings.defaultBang}"
+                                        type="text"
+                                        class="input px-0.6 py-0.2"
+                                        id="default-bang"
+                                        name="default-bang" />
+                                </div>
                             </div>
                             <div class="setting">
                                 <label for="theme" class="fg-muted">Theme</label>
