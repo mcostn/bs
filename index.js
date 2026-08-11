@@ -116,15 +116,37 @@ class UI {
                         commandfor="settings-dialog">
                         Settings
                     </button>
-                    <a
+                    <button
                         class="button"
-                        href="https://github.com/mcostn/bs"
-                        target="_blank">
-                        Source Code
-                    </a>
+                        command="show-modal"
+                        commandfor="about-dialog">
+                        About
+                    </button>
                 </div>
             </div>
             <div>
+                <dialog class="popup" id="about-dialog">
+                    <h2 class="fg-bold mb-1 text-lg">About</h2>
+
+                    <p class="max-w-xl mb-1">
+                        A minimal, self-hostable "bang" search redirector, inspired by DuckDuckGo's !Bang feature.
+                    </p>
+
+                    <p class="fg-muted mb-1">
+                        Source code available
+                        <a class="link" href="https://github.com/mcostn/bs" target="_blank">here</a>.
+                    </p>
+
+                    <div class="space-x">
+                        <button
+                                type="button"
+                                class="button"
+                                command="close"
+                                commandfor="about-dialog">
+                            Close
+                        </button>
+                    </div>
+                </dialog>
                 <dialog class="popup" id="settings-dialog">
                     <h2 class="fg-bold mb-1 text-lg">Settings</h2>
 
@@ -206,5 +228,4 @@ async function main() {
     await ui.addToPage();
     ui.onSearch = search;
 }
-
 main().catch(e => console.error("Unexpected error\n", e));
