@@ -46,6 +46,8 @@ class UI {
         body.innerHTML = this.html(settings);
         const themeSelect = getElementByIdOrThrow("theme");
         themeSelect.value = settings.theme;
+        const luckyEngineSelect = getElementByIdOrThrow("lucky-engine");
+        luckyEngineSelect.value = settings.luckyEngine;
 
         // Events
         const queryForm = getElementByIdOrThrow("query-form");
@@ -67,8 +69,9 @@ class UI {
             const data = new FormData(settingsForm);
             const defaultBang = data.get("default-bang");
             const theme = data.get("theme");
+            const luckyEngine = data.get("lucky-engine");
 
-            await updateSettings({ defaultBang, theme });
+            await updateSettings({ defaultBang, theme, luckyEngine });
             this.applyTheme(theme);
             settingsDialog.close();
         })
@@ -152,6 +155,17 @@ class UI {
                                     <option value="auto">Auto</option>
                                     <option value="light">Light</option>
                                     <option value="dark">Dark</option>
+                                </select>
+                            </div>
+                            <div class="setting">
+                                <label for="lucky-engine" class="fg-muted">Lucky Engine</label>
+                                <select
+                                    class="input px-0.6 py-0.2"
+                                    id="lucky-engine"
+                                    name="lucky-engine">
+                                    ${Object.entries(LUCKY_ENGINES)
+                                        .map(([id, engine]) => `<option value="${id}">${engine.label}</option>`)
+                                        .join("")}
                                 </select>
                             </div>
                         </div>
