@@ -105,6 +105,39 @@ body {
 .popup::backdrop {
     background: rgba(0, 0, 0, 0.65);
 }
+.popup p {
+    line-height: 1.5;
+}
+.popup code {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.1em 0.3em;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.3em 0.1em;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+.tab-button:hover {
+    color: var(--text);
+}
+.tab-button.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+}
+
+.tab-panel {
+    padding-left: 1.4em;
+    line-height: 1.5;
+}
+.tab-panel li {
+    margin-bottom: 0.4em;
+}
 
 .setting {
     display: flex;
@@ -146,7 +179,7 @@ body {
 .space-y > * { margin-bottom: 0.8em; }
 
 .w-full       { width: 100%; }
-.max-w-lg     { width: 18rem; }
+.max-w-lg     { max-width: 18rem; }
 .max-w-xl     { max-width: 34rem; }
 .min-h-screen { min-height: 100vh; }
 
@@ -154,3 +187,5 @@ body {
 .flex-column    { flex-direction: column; }
 .justify-center { justify-content: center; }
 .align-center   { align-items: center; }
+
+.gap-1 { gap: 1em; }

@@ -76,6 +76,17 @@ class UI {
             settingsDialog.close();
         })
 
+        const tabButtons = document.querySelectorAll("#browser-tabs .tab-button");
+        const tabPanels = document.querySelectorAll(".tab-panel");
+        const showTab = name => {
+            for (const btn of tabButtons) btn.classList.toggle("active", btn.dataset.tab === name);
+            for (const panel of tabPanels) panel.hidden = panel.dataset.panel !== name;
+        };
+        for (const btn of tabButtons) {
+            btn.addEventListener("click", () => showTab(btn.dataset.tab));
+        }
+        showTab(tabButtons[0]?.dataset.tab);
+
         this.applyTheme(settings.theme);
     }
 
@@ -132,6 +143,38 @@ class UI {
                         Source code available
                         <a class="link" href="https://github.com/mcostn/bs" target="_blank">here</a>.
                     </p>
+
+                    <h3 class="fg-bold text-lg">Use from your address bar</h3>
+                    <div class="mb-1">
+                        <div class="tab-container">
+                            <div class="flex gap-1 mb-1" id="browser-tabs">
+                                <button type="button" class="tab-button" data-tab="chrome">Chrome</button>
+                                <button type="button" class="tab-button" data-tab="brave">Brave</button>
+                                <button type="button" class="tab-button" data-tab="firefox">Firefox</button>
+                            </div>
+
+                            <ol class="tab-panel" data-panel="chrome">
+                                <li>Go to <code>chrome://settings/searchEngines</code>.</li>
+                                <li>Under "Site search", click <strong>Add</strong>.</li>
+                                <li>Use <code>https://mcostn.github.io/ssr/?query=%s</code> for the URL</li>
+                                <li>Click <strong>Add</strong>, then set it as the default search engine</li>
+                            </ol>
+
+                            <ol class="tab-panel" data-panel="brave">
+                                <li>Go to <code>brave://settings/searchEngines</code>.</li>
+                                <li>Under "Site search", click <strong>Add</strong>.</li>
+                                <li>Use <code>https://mcostn.github.io/ssr/?query=%s</code> for the URL</li>
+                                <li>Click <strong>Add</strong>, then set it as the default search engine</li>
+                            </ol>
+
+                            <ol class="tab-panel" data-panel="firefox">
+                                <li>Go to <code>about:preferences#search</code>.</li>
+                                <li>Under "Search Shortcuts", click <strong>Add</strong>.</li>
+                                <li>Use <code>https://mcostn.github.io/ssr/?query=%s</code> for the URL</li>
+                                <li>Set it as the default search engine</li>
+                            </ol>
+                        </div>
+                    </div>
 
                     <div class="space-x">
                         <button
