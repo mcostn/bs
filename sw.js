@@ -2,7 +2,7 @@
 
 importScripts("./common.js");
 
-const BANGS_CACHE = "bangsearch-bangs-v1";
+const BANGS_CACHE = "ssr-bangs-v1";
 const BANGS_URL = "./bangs/ddg.json";
 
 self.addEventListener("install", event => {

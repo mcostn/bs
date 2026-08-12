@@ -1,7 +1,7 @@
 "use strict";
 
 // IndexedDB
-const DB_NAME = 'bangsearch';
+const DB_NAME = 'simple-search-router';
 const DB_VERSION = 1;
 const STORE_NAME = 'kv';
 

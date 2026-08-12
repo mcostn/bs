@@ -94,11 +94,7 @@ class UI {
         <main class="min-h-screen flex flex-column justify-center">
             <div class="flex flex-column align-center">
                 <div class="mb-1">
-                    <img
-                        src="img/logo.svg"
-                        alt="logo"
-                        class="max-w-lg">
-                    <h1 class="text-xl text-center fg-bold mb-1">BangSearch</h1>
+                    <h1 class="text-xl text-center fg-bold mb-1">Simple Search Router</h1>
                 </div>
                 <form class="w-full px-0.6 flex justify-center" id="query-form">
                     <input

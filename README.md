@@ -1,10 +1,10 @@
-# BangSearch
+# Simple Search Router
 
 A minimal, self-hostable "bang" search redirector, inspired by DuckDuckGo's !Bang feature.
 
 ## Using it
 
-Add BangSearch as a custom search engine in your browser, pointing at:
+Add Simple Search Router as a custom search engine in your browser, pointing at:
 
 ```
 https://your-domain/?query=%s
