@@ -176,7 +176,7 @@ class UI {
                         </div>
                     </div>
 
-                    <div class="space-x">
+                    <div class="space-x flex justify-center">
                         <button
                                 type="button"
                                 class="button"
